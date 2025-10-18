@@ -125,11 +125,9 @@ def read_img(
     print_width,
     img_binarization_algo,
 ) -> np.ndarray:
-    im = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-    if im is None:
-        raise RuntimeError(f"Could not read image file: {filename}")
-    height = im.shape[0]
-    width = im.shape[1]
+    im = read_img_grayscale(filename)
+
+    height, width = im.shape
     factor = print_width / width
     resized = cv2.resize(
         im, (print_width, int(height * factor)), interpolation=cv2.INTER_AREA
@@ -169,6 +167,37 @@ def read_img(
         )
 
     return ~bin_img_bool
+
+
+def read_img_grayscale(
+    filename,
+    bg_color=[255, 255, 255],
+) -> np.ndarray:
+    """
+    Reads an image from filename and converts it to grayscale.
+    If the image has an alpha channel, it is blended with bg_color.
+    """
+    im = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+    if im is None:
+        raise RuntimeError(f"Could not read image file: {filename}")
+
+    # If image has alpha channel
+    if im.ndim == 3 and im.shape[2] == 4:
+        rgb = im[..., :3].astype(np.float32)
+        alpha = im[..., 3].astype(np.float32) / 255.0
+        bg = np.array(bg_color, dtype=np.float32)
+        # Blend each pixel with bg_color according to alpha
+        blended = rgb * alpha[..., None] + bg * (1 - alpha[..., None])
+        # Convert to grayscale
+        im_gray = cv2.cvtColor(blended.astype(np.uint8), cv2.COLOR_RGB2GRAY)
+    else:
+        # Already grayscale or no alpha
+        if im.ndim == 2:
+            im_gray = im
+        else:
+            im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+
+    return im_gray
 
 
 def show_preview(preview_img_uint8: np.ndarray):
