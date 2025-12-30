@@ -6,7 +6,7 @@ import sys
 import os
 import numpy as np
 
-from catprinter import logger
+logger = logging.getLogger('print_xkcd')
 from catprinter import cmds
 from catprinter.ble import run_ble
 from catprinter.img import read_img, show_preview
