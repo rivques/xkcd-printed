@@ -2,7 +2,7 @@ import cv2
 from math import ceil
 import numpy as np
 
-from catprinter import logger
+from catprinterlib import logger
 
 
 def floyd_steinberg_dither(img):
