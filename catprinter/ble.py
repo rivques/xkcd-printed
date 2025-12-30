@@ -145,7 +145,7 @@ async def wait_for_notification(
             logger.error(
                 f"Timeout waiting for notification 0x{expected_cmd_id:02X} after {timeout}s"
             )
-            return None
+            raise RuntimeError(f"Timeout waiting for notification 0x{expected_cmd_id:02X} after {timeout}s")
 
 
 async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: int):
@@ -157,10 +157,10 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
         address = await get_device_address(device)
     except RuntimeError as e:
         logger.error(f"🛑 Printer discovery/address error: {e}")
-        return
+        raise
     except Exception as e:
         logger.error(f"🛑 Unexpected error during device scan: {e}")
-        return
+        raise
 
     logger.info(f"⏳ Attempting to connect to {address}...")
 
@@ -214,10 +214,10 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
 
             except BleakError as e:
                 logger.error(f"🛑 Error finding service/characteristics: {e}")
-                return
+                raise
             except Exception as e:
                 logger.error(f"🛑 Unexpected error getting characteristics: {e}")
-                return
+                raise
 
             try:
                 logger.info(f"Starting notifications on {notify_char.uuid}...")
@@ -225,7 +225,7 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
                 logger.info("✅ Notifications started.")
             except Exception as e:
                 logger.error(f"🛑 Failed to start notifications: {e}")
-                return
+                raise
 
             line_count = len(image_data_buffer) // cmds.PRINTER_WIDTH_BYTES
             logger.info(
@@ -281,7 +281,7 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
                 notification_state, cmds.CommandIDs.PRINT, NOTIFICATION_TIMEOUT_S
             )
             if print_req_payload is None:
-                return
+                raise RuntimeError("No print request response received from printer.")
 
             if len(print_req_payload) > 0 and print_req_payload[0] == 0:
                 logger.info("✅ Print request accepted (A9 response OK).")
@@ -289,7 +289,7 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
                 logger.error(
                     f"🛑 Printer rejected print request (A9). Payload: {print_req_payload.hex()}. Aborting."
                 )
-                return
+                raise RuntimeError("Print request rejected by printer.")
 
             logger.info(
                 f"Sending {len(image_data_buffer)} bytes of image data to {data_char.uuid}..."
@@ -340,10 +340,13 @@ async def run_ble(image_data_buffer: bytes, device: Optional[str], intensity: in
 
     except BleakError as e:
         logger.error(f"🛑 Bluetooth Error: {e}")
+        raise
     except asyncio.TimeoutError:
         logger.error(f"🛑 Connection timed out to {address}")
+        raise
     except Exception as e:
         logger.error(f"🛑 An unexpected error occurred: {e}", exc_info=True)
+        raise
     finally:
         if client and client.is_connected:
             if notify_char_uuid:

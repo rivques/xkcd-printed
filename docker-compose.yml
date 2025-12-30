@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  catprinter:
+    build: .
+    container_name: catprinter
+    restart: unless-stopped
+    # Use host networking and privileged mode so the container can access
+    # the host Bluetooth stack. This only works on Linux hosts.
+    network_mode: "host"
+    privileged: true
+    environment:
+      - STATUS_FILE=/data/xkcd_last_printed.txt
+    env_file:
+      - .env
+    # For systems where DBus socket is used by BlueZ
+    volumes:
+      - ./data:/data
+      - ./catprinter:/app/catprinter:ro
+      - /var/run/dbus:/var/run/dbus:ro
+      - /sys/class/bluetooth:/sys/class/bluetooth:ro
