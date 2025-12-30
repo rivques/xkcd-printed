@@ -6,6 +6,10 @@ import sys
 import os
 import numpy as np
 
+# Ensure the project root is first on sys.path so the local `catprinter` package
+# is preferred over any installed package with the same name.
+sys.path.insert(0, os.path.dirname(__file__))
+
 from catprinter import logger
 from catprinter import cmds
 from catprinter.ble import run_ble
