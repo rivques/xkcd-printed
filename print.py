@@ -10,10 +10,10 @@ import numpy as np
 # is preferred over any installed package with the same name.
 sys.path.insert(0, os.path.dirname(__file__))
 
-from catprinter import logger
-from catprinter import cmds
-from catprinter.ble import run_ble
-from catprinter.img import read_img, show_preview
+from catprinterlib import logger
+from catprinterlib import cmds
+from catprinterlib.ble import run_ble
+from catprinterlib.img import read_img, show_preview
 
 
 def parse_args():

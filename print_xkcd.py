@@ -11,9 +11,9 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
 
 logger = logging.getLogger('print_xkcd')
-from catprinter import cmds
-from catprinter.ble import run_ble
-from catprinter.img import read_img, show_preview
+from catprinterlib import cmds
+from catprinterlib.ble import run_ble
+from catprinterlib.img import read_img, show_preview
 
 import xkcd
 import tempfile
